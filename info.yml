@@ -16,8 +16,23 @@ configuration:
 
     menu_name:
         type: str
-        default_value: "Sync Frame Range with Shotgun"
+        default_value: "Sync Context Settings with Shotgun"
         description: The name that will be shown in the Shotgun menu.
+
+    sg_fps_field:
+        type: str
+        default_value: "sg_fps"
+        description: The Shotgun field to use to retrieve fps settings.        
+
+    sg_head_handles_field:
+        type: str
+        default_value: "sg_head_handle"
+        description: The Shotgun field to use to retrieve the head handles.
+    
+    sg_tail_handles_field:
+        type: str
+        default_value: "sg_tail_handle"
+        description: The Shotgun field to use to retrieve the tail handles.
     
     sg_in_frame_field:
         type: str
@@ -43,8 +58,8 @@ configuration:
 requires_shotgun_fields:
 
 # More verbose description of this item 
-display_name: "Sync frame range with Shotgun"
-description: "Sync the frame range in your scene with the one stored in Shotgun."
+display_name: "Sync Context Settings with Shotgun"
+description: "Sync Context Settings in your scene with the ones stored in Shotgun."
 
 # Required minimum versions for this item to run
 requires_shotgun_version:

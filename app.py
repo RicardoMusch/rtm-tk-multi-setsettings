@@ -70,28 +70,30 @@ class SetFrameRange(Application):
 
         """
         try:
-            (new_in, new_out) = self.get_frame_range_from_shotgun()
-            (current_in, current_out) = self.get_current_frame_range()
+            #(new_in, new_out) = self.get_frame_range_from_shotgun()
+            (new_in, new_out, head_handles, tail_handles, fps) = self.get_settings_from_shotgun()
+            self.set_project_settings(new_in, new_out, head_handles, tail_handles, fps)
+            #(current_in, current_out) = self.get_current_frame_range()
 
-            if new_in is None or new_out is None:
-                message = "Shotgun has not yet been populated with \n"
-                message += "in and out frame data for this Shot."
-                QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
-                return
+            # if new_in is None or new_out is None:
+            #     message = "Shotgun has not yet been populated with \n"
+            #     message += "in and out frame data for this Shot."
+            #     QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
+            #     return
 
             # now update the frame range.
             # because the frame range is often set in multiple places (e.g render range,
             # current range, anim range etc), we go ahead an update every time, even if the values
             # in Shotgun are the same as the values reported via get_current_frame_range()
-            self.set_frame_range(new_in, new_out)
-            message = "Your scene has been updated with the \n"
-            message += "latest frame ranges from shotgun.\n\n"
-            message += "Previous start frame: %s\n" % current_in
-            message += "New start frame: %s\n\n" % new_in
-            message += "Previous end frame: %s\n" % current_out
-            message += "New end frame: %s\n\n" % new_out
+            # self.set_frame_range(new_in, new_out)
+            # message = "Your scene has been updated with the \n"
+            # message += "latest frame ranges from shotgun.\n\n"
+            # message += "Previous start frame: %s\n" % current_in
+            # message += "New start frame: %s\n\n" % new_in
+            # message += "Previous end frame: %s\n" % current_out
+            # message += "New end frame: %s\n\n" % new_out
 
-            QtGui.QMessageBox.information(None, "Frame range updated!", message)
+            # QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
         except tank.TankError:
             message = "There was a problem updating your scene frame range.\n"
@@ -102,6 +104,37 @@ class SetFrameRange(Application):
 
     ###############################################################################################
     # implementation
+
+    def get_settings_from_shotgun(self):
+        new_in = None
+        new_out = None
+        head_handles = None
+        tail_handles = None
+        fps = None
+
+        context = self.context
+        entity = self.context.entity
+        sg_entity_type = self.context.entity["type"]
+        
+        sg_filters = [["id", "is", entity["id"]]]
+        sg_fps_field = self.get_setting("sg_fps_field")
+        sg_in_field = self.get_setting("sg_in_frame_field")
+        sg_out_field = self.get_setting("sg_out_frame_field")
+        sg_head_handles_field = self.get_setting("sg_head_handles_field")
+        sg_tail_handles_field = self.get_setting("sg_tail_handles_field")
+        fields = [sg_in_field, sg_out_field, sg_head_handles_field, sg_tail_handles_field, sg_fps_field]
+        data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
+
+        "Handle FPS"
+        fps = data[sg_fps_field]
+        if fps == None:
+            sg_filters = [["id", "is", context.project["id"]]]
+            fields = [sg_fps_field]
+            fps = self.shotgun.find_one("Project", filters=sg_filters, fields=fields)
+            fps = fps[sg_fps_field]
+
+        return ( data[sg_in_field], data[sg_out_field], data[sg_head_handles_field], data[sg_tail_handles_field], fps )
+
 
 
     def get_frame_range_from_shotgun(self):
@@ -198,6 +231,36 @@ class SetFrameRange(Application):
                 "set_frame_range",
                 in_frame=in_frame,
                 out_frame=out_frame
+            )
+        except Exception as err:
+            error_message = traceback.format_exc()
+            self.logger.error(error_message)
+            raise tank.TankError(
+                "Encountered an error while setting the frame range: {}".format(str(err))
+            )
+
+    def set_project_settings(self, in_frame, out_frame, head_handles, tail_handles, fps):
+        """
+        set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
+            setting for this app.
+        It will pass the 'in_frame' and 'out_frame' to the hook.
+
+        If there is an internal exception thrown from the hook, it will reraise the exception as
+            a tank.TankError and write the traceback to the log.
+
+        :param int in_frame: The value of in_frame that we want to set in the current session.
+        :param int out_frame: The value of out_frame that we want to set in the current session.
+        :raises: tank.TankError
+        """
+        try:
+            self.execute_hook_method(
+                "hook_frame_operation",
+                "set_project_settings",
+                in_frame=in_frame,
+                out_frame=out_frame,
+                head_handles=head_handles,
+                tail_handles=tail_handles,
+                fps=fps
             )
         except Exception as err:
             error_message = traceback.format_exc()

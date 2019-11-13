@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import nuke
+import os
 
 import sgtk
 
@@ -54,3 +55,68 @@ class FrameOperation(HookBaseClass):
         # and lock again
         if locked:
             nuke.root()["lock_range"].setValue(True)
+
+
+    def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
+        
+        "Get Nuke Colorspace Settings from ENV"
+        try:
+            nuke_colorManagement = os.environ["NUKE_COLORMANAGEMENT"]
+        except:
+            nuke_colorManagement = nuke.root()["colorManagement"].value()
+        try:
+            nuke_ocio_config = os.environ["NUKE_OCIO_CONFIG"]
+        except:
+            nuke_ocio_config = nuke.root()["OCIO_config"].value()
+
+
+        msg = """\n
+        <strong>The Following settings have been fetched from Shotgun and will be applied:</strong>
+        \n
+        <strong>Colorspace Settings</strong>\n
+        {}: {} --> {}: {}
+        \n
+        <strong>FPS</strong>\n
+        {} --> {}
+        \n
+        <strong>Framerange</strong>\n
+        First frame: {} --> {}\n
+        Last frame: {} --> {}\n
+        Head handles: {} -- Tail handles: {}
+        \n
+        <strong>Apply?</strong>
+        """.format(nuke.root()["colorManagement"].value(), nuke.root()["OCIO_config"].value(), nuke_colorManagement, nuke_ocio_config, str(nuke.root()["fps"].value()), fps, str(int(nuke.root()["first_frame"].value())), str(in_frame), str(int(nuke.root()["last_frame"].value())), str(out_frame), head_handles, tail_handles)
+
+        try:
+            if nuke.ask(msg):
+                "FPS"
+                try:
+                    nuke.root()["fps"].setValue(fps)
+                except:
+                    pass
+
+                "Colorspace"
+                try:
+                    nuke.root()["colorManagement"].setValue(nuke_colorManagement)
+                    nuke.root()["OCIO_config"].setValue(nuke_ocio_config)
+                except:
+                    pass
+
+                # unlock
+                locked = nuke.root()["lock_range"].value()
+                if locked:
+                    nuke.root()["lock_range"].setValue(False)
+                # set values
+                try:
+                    nuke.root()["first_frame"].setValue(in_frame)
+                except:
+                    pass
+                try:
+                    nuke.root()["last_frame"].setValue(out_frame)
+                except:
+                    pass
+                # and lock again
+                if locked:
+                    nuke.root()["lock_range"].setValue(True)
+        except Exception as e:
+            print e
