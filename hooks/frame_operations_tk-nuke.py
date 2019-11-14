@@ -63,13 +63,11 @@ class FrameOperation(HookBaseClass):
         try:
             nuke_colorManagement = os.environ["NUKE_COLORMANAGEMENT"]
         except:
-            #nuke_colorManagement = nuke.root()["colorManagement"].value()
-            nuke_colorManagement = "No change"
+            nuke_colorManagement = nuke.root()["colorManagement"].value()
         try:
             nuke_ocio_config = os.environ["NUKE_OCIO_CONFIG"]
         except:
-            #nuke_ocio_config = nuke.root()["OCIO_config"].value()
-            nuke_ocio_config = "No change"
+            nuke_ocio_config = nuke.root()["OCIO_config"].value()
 
 
 
@@ -133,16 +131,19 @@ class FrameOperation(HookBaseClass):
                     nuke.root()["lock_range"].setValue(True)
 
 
-                #####################
-                "Set Viewer Handles"
-                #####################
-                "Get the node that is the current viewer"
-                v = nuke.activeViewer().node()
+                try:
+                    #####################
+                    "Set Viewer Handles"
+                    #####################
+                    "Get the node that is the current viewer"
+                    v = nuke.activeViewer().node()
 
-                "Set Framerange Handles"
-                v['frame_range_lock'].setValue(True)
-                stringed_frange = str(int(in_frame+head_handles))+"-"+str(int(out_frame-tail_handles))
-                v['frame_range'].setValue(str(stringed_frange))
+                    "Set Framerange Handles"
+                    v['frame_range_lock'].setValue(True)
+                    stringed_frange = str(int(in_frame+head_handles))+"-"+str(int(out_frame-tail_handles))
+                    v['frame_range'].setValue(str(stringed_frange))
+                except:
+                    pass
 
         except Exception as e:
             print e
