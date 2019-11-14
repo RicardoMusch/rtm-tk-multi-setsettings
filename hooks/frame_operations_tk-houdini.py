@@ -46,10 +46,10 @@ class FrameOperation(HookBaseClass):
         res = hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=hou.confirmType.OverwriteFile)
 
         if res == True:
-            "Set FPS"
+            print "Setting FPS to", fps
             hou.setFps(fps)
 
-            "Framerange"
+            print "Setting Framerange to", in_frame, "-", out_frame
             hou.playbar.setPlaybackRange(in_frame, out_frame)
 
 
