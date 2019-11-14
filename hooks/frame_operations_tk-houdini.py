@@ -10,6 +10,7 @@
 
 import hou
 import os
+import time
 
 import sgtk
 
@@ -24,12 +25,18 @@ class FrameOperation(HookBaseClass):
 
     def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
         
+        ################
         "Houdini Vars"
+        ################
         current_framerange = hou.playbar.frameRange()
         current_fps = hou.fps()
         in_frame = float(in_frame)
         out_frame = float(out_frame)
 
+
+        ###############################
+        "Houdini Confirmation Panel"
+        ###############################
         msg = """
         The Following settings have been fetched from Shotgun and will be applied:\n
         FPS\n
@@ -46,40 +53,34 @@ class FrameOperation(HookBaseClass):
         res = hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=hou.confirmType.OverwriteFile)
 
         if res == True:
+            
+            ##########################################################
+            "Set FPS"
+            ##########################################################
             try:
                 print "Setting FPS to", fps
                 hou.setFps(fps)
             except Exception as e:
                 print e
 
+
+            ##########################################################
             print "Setting Framerange to", in_frame, "-", out_frame
+            ##########################################################
             hou.playbar.setUseIntegerFrames(True)
             hou.playbar.setFrameRange(in_frame, out_frame)
             hou.playbar.setPlaybackRange(in_frame, out_frame)
             hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))
             hou.playbar.setUseIntegerFrames(False)
+            time.sleep(2)
             hou.playbar.setUseIntegerFrames(True)
             hou.setFrame(in_frame)
-            # try:
-            #     hou.playbar.setUseIntegerFrames(False)
-            #     hou.playbar.setFrameRange(in_frame, out_frame)
-            # except Exception as e:
-            #     print e
-            # try:
-            #     hou.playbar.setPlaybackRange(in_frame, out_frame)
-            # except Exception as e:
-            #     print e
-            # try:
-            #     hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))
-            # except Exception as e:
-            #     print e
-            # try:
-            #     hou.setFrame(in_frame)
-            #     hou.playbar.setUseIntegerFrames(True)
-            # except Exception as e:
-            #     print e
 
 
+    
+    ###################################
+    "legacy code from the forked app"
+    ###################################
 
     def get_frame_range(self, **kwargs):
         """

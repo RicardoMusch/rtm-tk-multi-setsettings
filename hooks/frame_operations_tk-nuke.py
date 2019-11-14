@@ -92,19 +92,29 @@ class FrameOperation(HookBaseClass):
 
         try:
             if nuke.ask(msg):
-                "FPS"
+
+                ###################
+                "      FPS        "
+                ###################
                 try:
                     nuke.root()["fps"].setValue(fps)
                 except:
                     pass
 
+
+                ###################
                 "Colorspace"
+                ###################
                 try:
                     nuke.root()["colorManagement"].setValue(nuke_colorManagement)
                     nuke.root()["OCIO_config"].setValue(nuke_ocio_config)
                 except:
                     pass
 
+
+                ###################
+                "Set Framerange"
+                ###################
                 # unlock
                 locked = nuke.root()["lock_range"].value()
                 if locked:
@@ -121,5 +131,18 @@ class FrameOperation(HookBaseClass):
                 # and lock again
                 if locked:
                     nuke.root()["lock_range"].setValue(True)
+
+
+                #####################
+                "Set Viewer Handles"
+                #####################
+                "Get the node that is the current viewer"
+                v = nuke.activeViewer().node()
+
+                "Set Framerange Handles"
+                v['frame_range_lock'].setValue(True)
+                stringed_frange = in_frame+head_handles, "-", out_frame-tail_handles
+                v['frame_range'].setValue(str(stringed_frange))
+
         except Exception as e:
             print e
