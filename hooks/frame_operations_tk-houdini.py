@@ -31,20 +31,27 @@ class FrameOperation(HookBaseClass):
 
 
         msg = """
-        <strong>The Following settings have been fetched from Shotgun and will be applied:</strong>
-        \n
-        <strong>FPS</strong>\n
+        The Following settings have been fetched from Shotgun and will be applied:\n
+        FPS\n
         {} --> {}
         \n
-        <strong>Framerange</strong>\n
+        Framerange\n
         First frame: {} --> {}\n
         Last frame: {} --> {}\n
         Head handles: {} -- Tail handles: {}
         \n
-        <strong>Apply?</strong>
+        Apply?
         """.format(current_fps, fps, current_framerange[0], str(in_frame), current_framerange[1], str(out_frame), head_handles, tail_handles)
 
-        hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=hou.confirmType.OverwriteFile)
+        res = hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=None)
+        #suppress=hou.confirmType.OverwriteFile)
+
+        if res == True:
+            "Set FPS"
+            hou.setFps(fps)
+
+            "Framerange"
+            hou.playbar.setPlaybackRange(in_frame, out_frame)
 
 
 
