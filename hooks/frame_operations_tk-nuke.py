@@ -63,11 +63,14 @@ class FrameOperation(HookBaseClass):
         try:
             nuke_colorManagement = os.environ["NUKE_COLORMANAGEMENT"]
         except:
-            nuke_colorManagement = nuke.root()["colorManagement"].value()
+            #nuke_colorManagement = nuke.root()["colorManagement"].value()
+            nuke_colorManagement = "No change"
         try:
             nuke_ocio_config = os.environ["NUKE_OCIO_CONFIG"]
         except:
-            nuke_ocio_config = nuke.root()["OCIO_config"].value()
+            #nuke_ocio_config = nuke.root()["OCIO_config"].value()
+            nuke_ocio_config = "No change"
+
 
 
         msg = """\n
