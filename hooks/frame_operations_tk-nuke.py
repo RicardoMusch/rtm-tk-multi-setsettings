@@ -141,7 +141,7 @@ class FrameOperation(HookBaseClass):
 
                 "Set Framerange Handles"
                 v['frame_range_lock'].setValue(True)
-                stringed_frange = in_frame+head_handles, "-", out_frame-tail_handles
+                stringed_frange = str(int(in_frame+head_handles))+"-"+str(int(out_frame-tail_handles))
                 v['frame_range'].setValue(str(stringed_frange))
 
         except Exception as e:
