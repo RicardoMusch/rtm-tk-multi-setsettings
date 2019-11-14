@@ -43,8 +43,7 @@ class FrameOperation(HookBaseClass):
         Apply?
         """.format(current_fps, fps, current_framerange[0], str(in_frame), current_framerange[1], str(out_frame), head_handles, tail_handles)
 
-        res = hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=None)
-        #suppress=hou.confirmType.OverwriteFile)
+        res = hou.ui.displayConfirmation(msg, severity=hou.severityType.Message, help=None, title=None, details=None, details_label=None, suppress=hou.confirmType.OverwriteFile)
 
         if res == True:
             "Set FPS"
