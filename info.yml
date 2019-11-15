@@ -22,7 +22,7 @@ configuration:
     sg_fps_field:
         type: str
         default_value: "sg_fps"
-        description: The Shotgun field to use to retrieve fps settings.        
+        description: The Shotgun field to use to retrieve project fps settings.        
 
     sg_head_handles_field:
         type: str
@@ -47,12 +47,31 @@ configuration:
         description: The Shotgun field to use to retrieve the out frame. The app will look 
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
+
+    sg_nuke_color_management_field:
+        type: str
+        default_value: "env:NUKE_COLORMANAGEMENT"
+        description: The Shotgun field to use to retrieve the Nuke Colormanagement settings for the "colorManagement" knob in Nuke's Project Settings.
+                     Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
+
+    sg_nuke_ocio_config_field:
+        type: str
+        default_value: "env:NUKE_OCIO_CONFIG"
+        description: The Shotgun field to use to retrieve the Nuke OCIO config settings for the "ocio_config" knob in Nuke's Project Settings.
+                     Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
+
+    sg_nuke_custom_ocio_config_path_field:
+        type: str
+        default_value: ""
+        description: The Shotgun field to use to retrieve the Nuke Custom OCIO config settings for the "customOCIOConfigPath" knob in Nuke's Project Settings.
+                     Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
+
         
     # hooks
     hook_frame_operation:
         type: hook
-        default_value: "{self}/frame_operations_{engine_name}.py"
-        description: Hook which contains all methods for setting/getting frame ranges.
+        default_value: "{self}/set_settings_{engine_name}.py"
+        description: Hook which contains all methods for setting/getting settings.
 
 # the Shotgun fields that this app needs in order to operate correctly
 requires_shotgun_fields:

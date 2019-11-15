@@ -106,32 +106,62 @@ class SetFrameRange(Application):
     # implementation
 
     def get_settings_from_shotgun(self):
-        new_in = None
-        new_out = None
-        head_handles = None
-        tail_handles = None
-        fps = None
+        # new_in = None
+        # new_out = None
+        # head_handles = None
+        # tail_handles = None
+        # fps = None
 
+
+        "Get a Shotgun Context"
         context = self.context
         entity = self.context.entity
         sg_entity_type = self.context.entity["type"]
+
+
+        "ENTITY DATA"
+        "Define Fields to pull from Shotgun for the entity"
+        sg_fields = []
         
-        sg_filters = [["id", "is", entity["id"]]]
         sg_fps_field = self.get_setting("sg_fps_field")
+        sg_fields.append(sg_fps_field)
+        
         sg_in_field = self.get_setting("sg_in_frame_field")
+        sg_fields.append(sg_in_frame_field)
+
         sg_out_field = self.get_setting("sg_out_frame_field")
+        sg_fields.append(sg_out_frame_field)
+
         sg_head_handles_field = self.get_setting("sg_head_handles_field")
+        sg_fields.append(sg_head_handles_field)
+
         sg_tail_handles_field = self.get_setting("sg_tail_handles_field")
-        fields = [sg_in_field, sg_out_field, sg_head_handles_field, sg_tail_handles_field, sg_fps_field]
+        sg_fields.append(sg_tail_handles_field)
+
+        "Define Filters"
+        sg_filters = [["id", "is", entity["id"]]]
+
+        # fields = [sg_in_field, sg_out_field, sg_head_handles_field, sg_tail_handles_field, sg_fps_field]
+        "Pull info from Shotgun"
         data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
 
-        "Handle FPS"
-        fps = data[sg_fps_field]
-        if fps == None:
-            sg_filters = [["id", "is", context.project["id"]]]
-            fields = [sg_fps_field]
-            fps = self.shotgun.find_one("Project", filters=sg_filters, fields=fields)
-            fps = fps[sg_fps_field]
+
+        "PROJECT DATA"
+        "Define Fields to pull from Shotgun for the project"
+        sg_fields = []
+        
+        sg_fps_field = self.get_setting("sg_fps_field")
+        sg_fields.append(sg_fps_field)
+
+        "Search the Project Data for the above fields"
+        sg_filters = [["id", "is", context.project["id"]]]
+        project_data = self.shotgun.find_one("Project", filters=sg_filters, fields=sg_fields)
+
+        "Replace dict values that have no data from the entity"
+        for key in data.keys():
+            if data[key] == None:
+                data[key] = project_data.get(key)
+        
 
         return ( data[sg_in_field], data[sg_out_field], data[sg_head_handles_field], data[sg_tail_handles_field], fps )
 

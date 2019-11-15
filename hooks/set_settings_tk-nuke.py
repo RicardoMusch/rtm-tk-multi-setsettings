@@ -16,6 +16,9 @@ import sgtk
 HookBaseClass = sgtk.get_hook_baseclass()
 
 
+context = self.context
+
+
 class FrameOperation(HookBaseClass):
     """
     Hook called to perform a frame operation with the
@@ -57,11 +60,21 @@ class FrameOperation(HookBaseClass):
             nuke.root()["lock_range"].setValue(True)
 
 
-    def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
-        
+    #def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
+    def set_project_settings(self, data, **kwargs):
+
+        print data
+
+        import ast
+        data = ast.literal_eval(data)
+
+
         "Get Nuke Colorspace Settings from ENV"
         try:
-            nuke_colorManagement = os.environ["NUKE_COLORMANAGEMENT"]
+            if "env:" in nuke_colorManagement:
+                nuke_colorManagement = os.environ[nuke_colorManagement.split("env:")[1]]
+            else:
+
         except:
             nuke_colorManagement = nuke.root()["colorManagement"].value()
         try:
