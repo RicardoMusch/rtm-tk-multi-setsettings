@@ -73,8 +73,6 @@ class FrameOperation(HookBaseClass):
         try:
             if "env:" in nuke_colorManagement:
                 nuke_colorManagement = os.environ[nuke_colorManagement.split("env:")[1]]
-            else:
-
         except:
             nuke_colorManagement = nuke.root()["colorManagement"].value()
         try:
