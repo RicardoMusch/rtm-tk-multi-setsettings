@@ -71,9 +71,12 @@ class SetFrameRange(Application):
         """
         try:
             #(new_in, new_out) = self.get_frame_range_from_shotgun()
-            (new_in, new_out, head_handles, tail_handles, fps) = self.get_settings_from_shotgun()
-            self.set_project_settings(new_in, new_out, head_handles, tail_handles, fps)
+            #(new_in, new_out, head_handles, tail_handles, fps) = self.get_settings_from_shotgun()
+            #self.set_project_settings(new_in, new_out, head_handles, tail_handles, fps)
             #(current_in, current_out) = self.get_current_frame_range()
+
+            data = self.get_settings_from_shotgun()
+            self.set_project_settings(data)
 
             # if new_in is None or new_out is None:
             #     message = "Shotgun has not yet been populated with \n"
@@ -106,12 +109,6 @@ class SetFrameRange(Application):
     # implementation
 
     def get_settings_from_shotgun(self):
-        # new_in = None
-        # new_out = None
-        # head_handles = None
-        # tail_handles = None
-        # fps = None
-
 
         "Get a Shotgun Context"
         context = self.context
@@ -126,10 +123,10 @@ class SetFrameRange(Application):
         sg_fps_field = self.get_setting("sg_fps_field")
         sg_fields.append(sg_fps_field)
         
-        sg_in_field = self.get_setting("sg_in_frame_field")
+        sg_in_frame_field = self.get_setting("sg_in_frame_field")
         sg_fields.append(sg_in_frame_field)
 
-        sg_out_field = self.get_setting("sg_out_frame_field")
+        sg_out_frame_field = self.get_setting("sg_out_frame_field")
         sg_fields.append(sg_out_frame_field)
 
         sg_head_handles_field = self.get_setting("sg_head_handles_field")
@@ -138,32 +135,82 @@ class SetFrameRange(Application):
         sg_tail_handles_field = self.get_setting("sg_tail_handles_field")
         sg_fields.append(sg_tail_handles_field)
 
+        sg_nuke_color_management_field = self.get_setting("sg_nuke_color_management_field")
+        sg_fields.append(sg_nuke_color_management_field)
+        
+        sg_nuke_ocio_config_field = self.get_setting("sg_nuke_ocio_config_field")
+        sg_fields.append(sg_nuke_ocio_config_field)
+
+        sg_nuke_custom_ocio_config_path_field = self.get_setting("sg_nuke_custom_ocio_config_path_field")
+        sg_fields.append(sg_nuke_custom_ocio_config_path_field)
+
+        print sg_fields
+
         "Define Filters"
-        sg_filters = [["id", "is", entity["id"]]]
+        sg_filters = [ [ "id", "is", entity["id"] ] ]
 
         # fields = [sg_in_field, sg_out_field, sg_head_handles_field, sg_tail_handles_field, sg_fps_field]
         "Pull info from Shotgun"
-        data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
+        data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=sg_fields)
+
+        #print data
 
 
         "PROJECT DATA"
         "Define Fields to pull from Shotgun for the project"
-        sg_fields = []
+        sg_fields2 = []
         
         sg_fps_field = self.get_setting("sg_fps_field")
-        sg_fields.append(sg_fps_field)
+        sg_fields2.append(sg_fps_field)
 
         "Search the Project Data for the above fields"
         sg_filters = [["id", "is", context.project["id"]]]
-        project_data = self.shotgun.find_one("Project", filters=sg_filters, fields=sg_fields)
+        project_data = self.shotgun.find_one("Project", filters=sg_filters, fields=sg_fields2)
 
         "Replace dict values that have no data from the entity"
         for key in data.keys():
             if data[key] == None:
                 data[key] = project_data.get(key)
+
+
+        "Handle Nuke Settings as the fields may not exist and environement variable may be preffered"
+        try: 
+            nuke_color_management = data[sg_nuke_color_management_field]
+        except:
+            nuke_color_management = self.get_setting("sg_nuke_color_management_field")
+        try:
+            nuke_ocio_config = data[sg_nuke_ocio_config_field]
+        except:
+            nuke_ocio_config = self.get_setting("sg_nuke_ocio_config_field")
+        try:
+            nuke_custom_ocio_config_path = data[sg_nuke_custom_ocio_config_path_field]
+        except:
+            nuke_custom_ocio_config_path = self.get_setting("sg_nuke_custom_ocio_config_path_field")
+
+
+
+        "Replace dict Keys for standardized names"
+        std_data = {
+            "sg_fps": data[sg_fps_field],
+            "sg_in_frame": data[sg_in_frame_field],
+            "sg_out_frame": data[sg_out_frame_field],
+            "sg_head_handles": data[sg_head_handles_field],
+            "sg_tail_handles": data[sg_tail_handles_field],
+            "sg_nuke_color_management": nuke_color_management,
+            "sg_nuke_ocio_config": nuke_ocio_config,
+            "sg_custom_ocio_config_path": nuke_custom_ocio_config_path
+            # try:
+            #     "sg_nuke_color_management": data[sg_nuke_color_management_field],
+            # except:
+            #     "sg_nuke_color_management": sg_nuke_color_management_field,
+            # "sg_nuke_ocio_config": data[sg_nuke_ocio_config_field],
+            # "sg_nuke_custom_ocio_config_path": data[sg_nuke_custom_ocio_config_path_field]
+        }
+        
         
 
-        return ( data[sg_in_field], data[sg_out_field], data[sg_head_handles_field], data[sg_tail_handles_field], fps )
+        #return ( data[sg_in_field], data[sg_out_field], data[sg_head_handles_field], data[sg_tail_handles_field], fps )
+        return std_data
 
 
 
@@ -269,7 +316,8 @@ class SetFrameRange(Application):
                 "Encountered an error while setting the frame range: {}".format(str(err))
             )
 
-    def set_project_settings(self, in_frame, out_frame, head_handles, tail_handles, fps):
+#    def set_project_settings(self, in_frame, out_frame, head_handles, tail_handles, fps):
+    def set_project_settings(self, data):
         """
         set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
@@ -282,15 +330,21 @@ class SetFrameRange(Application):
         :param int out_frame: The value of out_frame that we want to set in the current session.
         :raises: tank.TankError
         """
+        # try:
+        #     self.execute_hook_method(
+        #         "hook_frame_operation",
+        #         "set_project_settings",
+        #         in_frame=in_frame,
+        #         out_frame=out_frame,
+        #         head_handles=head_handles,
+        #         tail_handles=tail_handles,
+        #         fps=fps
+        #     )
         try:
             self.execute_hook_method(
                 "hook_frame_operation",
                 "set_project_settings",
-                in_frame=in_frame,
-                out_frame=out_frame,
-                head_handles=head_handles,
-                tail_handles=tail_handles,
-                fps=fps
+                data=str(data)
             )
         except Exception as err:
             error_message = traceback.format_exc()

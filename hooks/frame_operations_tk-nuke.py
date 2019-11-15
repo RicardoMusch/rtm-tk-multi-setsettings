@@ -22,61 +22,53 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
+    def get_frame_range(self, **kwargs):
+        """
+        get_frame_range will return a tuple of (in_frame, out_frame)
+
+        :returns: Returns the frame range in the form (in_frame, out_frame)
+        :rtype: tuple[int, int]
+        """
+        current_in = int(nuke.root()["first_frame"].value())
+        current_out = int(nuke.root()["last_frame"].value())
+        return (current_in, current_out)
+
+    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+        """
+        set_frame_range will set the frame range using `in_frame` and `out_frame`
+
+        :param int in_frame: in_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :param int out_frame: out_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        """
+
+        # unlock
+        locked = nuke.root()["lock_range"].value()
+        if locked:
+            nuke.root()["lock_range"].setValue(False)
+        # set values
+        nuke.root()["first_frame"].setValue(in_frame)
+        nuke.root()["last_frame"].setValue(out_frame)
+        # and lock again
+        if locked:
+            nuke.root()["lock_range"].setValue(True)
+
+
     #def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
     def set_project_settings(self, data, **kwargs):
-
-        print "\n\n"
-        print data
-        print "\n\n"
-
-        import ast
-        data = ast.literal_eval(data)
-
-
-    
-        #############################################
-        print "Nuke Color Management"
-        #############################################
-        "Color Management"
-        nuke_colorManagement = data["sg_nuke_color_management"]
-        if "$" in nuke_colorManagement:
-            nuke_colorManagement = os.environ[nuke_colorManagement.replace("$", "")]
-        if nuke_colorManagement == None:
-            nuke_colorManagement = nuke.root()["colorManagement"].getValue()
         
-        "OCIO config"
-        nuke_ocio_config = data["sg_nuke_ocio_config"]
-        if "$" in nuke_ocio_config:
-            nuke_ocio_config = os.environ[nuke_ocio_config.replace("$", "")]
-        if nuke_ocio_config == None:
-            nuke_ocio_config = nuke.root()["OCIO_config"].getValue()
-        
-        "Custom OCIO Config"
-        nuke_custom_ocio_config_path = data["sg_custom_ocio_config_path"]
-        if "$" in nuke_custom_ocio_config_path:
-            nuke_custom_ocio_config_path = os.environ[nuke_custom_ocio_config_path.replace("$", "")]
-        if nuke_custom_ocio_config_path == None:
-            nuke_custom_ocio_config_path = ""
-
-
-        #############################################
-        print "Get FPS from dict"
-        #############################################
-        fps = data.get("sg_fps")
-        print "FPS from dict:", fps
-
-        
-        try:    
-            #############################################
-            print "Get Frames from dict"
-            #############################################
-            first_frame = data.get("sg_in_frame")
-            last_frame = data.get("sg_out_frame")
-            head_handles = data.get("sg_head_handles")
-            tail_handles = data.get("sg_tail_handles")
-            print "Got frame info from dict", first_frame, last_frame, head_handles, tail_handles
+        "Get Nuke Colorspace Settings from ENV"
+        try:
+            nuke_colorManagement = os.environ["NUKE_COLORMANAGEMENT"]
         except:
-            fps = nuke.root()["fps"].value()
+            nuke_colorManagement = nuke.root()["colorManagement"].value()
+        try:
+            nuke_ocio_config = os.environ["NUKE_OCIO_CONFIG"]
+        except:
+            nuke_ocio_config = nuke.root()["OCIO_config"].value()
 
 
 
@@ -95,7 +87,7 @@ class FrameOperation(HookBaseClass):
         Head handles: {} -- Tail handles: {}
         \n
         <strong>Apply?</strong>
-        """.format(nuke.root()["colorManagement"].value(), nuke.root()["OCIO_config"].value(), nuke_colorManagement, nuke_ocio_config, str(nuke.root()["fps"].value()), fps, str(int(nuke.root()["first_frame"].value())), first_frame, str(int(nuke.root()["last_frame"].value())), last_frame, head_handles, tail_handles)
+        """.format(nuke.root()["colorManagement"].value(), nuke.root()["OCIO_config"].value(), nuke_colorManagement, nuke_ocio_config, str(nuke.root()["fps"].value()), fps, str(int(nuke.root()["first_frame"].value())), str(in_frame), str(int(nuke.root()["last_frame"].value())), str(out_frame), head_handles, tail_handles)
 
         try:
             if nuke.ask(msg):
@@ -115,7 +107,6 @@ class FrameOperation(HookBaseClass):
                 try:
                     nuke.root()["colorManagement"].setValue(nuke_colorManagement)
                     nuke.root()["OCIO_config"].setValue(nuke_ocio_config)
-                    nuke.root()["customOCIOConfigPath"].setValue(nuke_custom_ocio_config_path)
                 except:
                     pass
 
@@ -129,11 +120,11 @@ class FrameOperation(HookBaseClass):
                     nuke.root()["lock_range"].setValue(False)
                 # set values
                 try:
-                    nuke.root()["first_frame"].setValue(first_frame)
+                    nuke.root()["first_frame"].setValue(in_frame)
                 except:
                     pass
                 try:
-                    nuke.root()["last_frame"].setValue(last_frame)
+                    nuke.root()["last_frame"].setValue(out_frame)
                 except:
                     pass
                 # and lock again
@@ -150,7 +141,7 @@ class FrameOperation(HookBaseClass):
 
                     "Set Framerange Handles"
                     v['frame_range_lock'].setValue(True)
-                    stringed_frange = str(int(first_frame+head_handles))+"-"+str(int(last_frame-tail_handles))
+                    stringed_frange = str(int(in_frame+head_handles))+"-"+str(int(out_frame-tail_handles))
                     v['frame_range'].setValue(str(stringed_frange))
                 except:
                     pass

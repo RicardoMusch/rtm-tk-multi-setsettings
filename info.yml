@@ -50,19 +50,19 @@ configuration:
 
     sg_nuke_color_management_field:
         type: str
-        default_value: "env:NUKE_COLORMANAGEMENT"
+        default_value: "$NUKE_COLORMANAGEMENT"
         description: The Shotgun field to use to retrieve the Nuke Colormanagement settings for the "colorManagement" knob in Nuke's Project Settings.
                      Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
 
     sg_nuke_ocio_config_field:
         type: str
-        default_value: "env:NUKE_OCIO_CONFIG"
+        default_value: "$NUKE_OCIO_CONFIG"
         description: The Shotgun field to use to retrieve the Nuke OCIO config settings for the "ocio_config" knob in Nuke's Project Settings.
                      Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
 
     sg_nuke_custom_ocio_config_path_field:
         type: str
-        default_value: ""
+        default_value: "None"
         description: The Shotgun field to use to retrieve the Nuke Custom OCIO config settings for the "customOCIOConfigPath" knob in Nuke's Project Settings.
                      Prefx with "env:" to load from an environement variable with that name instead of a Shotgun field.
 

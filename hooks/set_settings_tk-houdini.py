@@ -23,15 +23,20 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def set_project_settings(self, in_frame=None, out_frame=None, head_handles=None, tail_handles=None, fps=None, **kwargs):
+    def set_project_settings(self, data, **kwargs):
         
+        import ast
+        data = ast.literal_eval(data)
+
+
         ################
         "Houdini Vars"
         ################
         current_framerange = hou.playbar.frameRange()
         current_fps = hou.fps()
-        in_frame = float(in_frame)
-        out_frame = float(out_frame)
+        fps = data["sg_fps"]
+        in_frame = data["sg_in_frame"]
+        out_frame = data["sg_out_frame"]
 
 
         ###############################
